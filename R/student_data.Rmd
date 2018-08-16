@@ -13,3 +13,13 @@ Loading survey data
 ```{r}
 student_data <- read_csv("../data/PG_Student_data_tidy.csv")
 ```
+
+Need to tidy the data a bit
+```{r}
+questions <- student_data %>% slice(1)
+student_data_mod <- student_data %>% slice(-1)
+```
+
+
+
+
