@@ -5,5 +5,11 @@ output: html_document
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
+library(tidyverse)
 ```
 
+Loading survey data
+
+```{r}
+student_data <- read_csv("../data/PG_Student_data_tidy.csv")
+```
