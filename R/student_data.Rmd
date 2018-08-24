@@ -16,10 +16,72 @@ student_data <- read_csv("../data/PG_Student_data_tidy.csv")
 
 Need to tidy the data a bit
 ```{r}
+# pull out the first row which was actually the question
+
 questions <- student_data %>% slice(1)
 student_data_mod <- student_data %>% slice(-1)
+
+# add in a respondant id column to the data which will come in useful for some later operations
+student_data_mod <- student_data_mod %>% rownames_to_column(var = 'respondant')
+```
+
+
+Work out the appropriate divisions for the the free text responses in Q1_5 and recode them
+```{r}
+# the following command will let you know what the different responses were from within th column
+# table(student_data_mod$Q1_5_TEXT)
+
+# take specific entries in the Q1_5_TEXT column and convert them to the appropriate divison
+student_data_mod <- student_data_mod %>% mutate(
+  Q1_5_recode = case_when(
+    Q1_5_TEXT == "Applied Science" ~ "Division of Sciences",
+    Q1_5_TEXT == "Zoology department" ~ "Division of Sciences",
+    Q1_5_TEXT == "science communication" ~ "Division of Sciences",
+    Q1_5_TEXT == "Psychology" ~ "Division of Sciences",
+    Q1_5_TEXT == "Teaching" ~ "Division of Humanities",
+    Q1_5_TEXT == "HEDC" ~ "Division of Humanities",
+    Q1_5_TEXT == "Social Work" ~ "Division of Humanities",
+    Q1_5_TEXT == "National Centre for Peace and Conflict Studies" ~ "Division of Humanities",
+    Q1_5_TEXT == "Te Tumu" ~ "Division of Humanities",
+    stringr::str_detect(string = Q1_5_TEXT, pattern = "Education") ~ "Division of Humanities", # this finds out what entries contained "Education"
+    TRUE ~ Q1_5_TEXT)
+)
 ```
 
 
 
+Further tidying
+```{r}
+# a function to pull out the number at the start of a string, when annotation has been added
+drop_annotation <- function(column){
+  str_split(string = column, pattern = " ") %>% # break up the string into 'words' using a space character
+    purrr::map(., 1) %>% # pull out the first 'word' from the list of words
+    as.numeric() # convert the 'word' to be an actual number in R 
+}
+
+# turn Q22 (and sub questions) into numeric data
+# runs drop_annotation() on each column with a column name starting with "Q22_"
+student_data_mod <- student_data_mod %>% 
+  mutate_at(.vars = vars(starts_with("Q22_")), .funs = drop_annotation) # runs drop_annotation() on each column with a column name starting with "Q22_"
+```
+
+
+plot degree
+
+```{r, fig.width = 6}
+ggplot(data = student_data_mod) + geom_bar(mapping = aes(x = Q3, fill = Q2))
+```
+
+```{r}
+student_data_mod %>% mutate(lib = str_detect(Q9, "lib")) %>%  group_by(lib) %>% tally()
+```
+
+
+How many people are there at each degree stage and what division are they from. This will have a little bit of 'double counting' due to people having multiple divisions. One of the other troubles is that Q1_5 is a free text column so needs cleaning
+```{r}
+# first grab the columns needed: respondant, division columns (Q1, and Q1_5), and degree (Q2)
+division_degree <- student_data_mod %>% select(respondant, Q1, Q1_5_TEXT, Q2)
+
+
+```
 
