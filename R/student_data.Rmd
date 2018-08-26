@@ -50,7 +50,7 @@ student_data_mod <- student_data_mod %>% mutate(
 
 
 
-Further tidying
+Further tidying for Q22 to remove the text and make a number
 ```{r}
 # a function to pull out the number at the start of a string, when annotation has been added
 drop_annotation <- function(column){
@@ -77,11 +77,22 @@ student_data_mod %>% mutate(lib = str_detect(Q9, "lib")) %>%  group_by(lib) %>% 
 ```
 
 
-How many people are there at each degree stage and what division are they from. This will have a little bit of 'double counting' due to people having multiple divisions. One of the other troubles is that Q1_5 is a free text column so needs cleaning
+How many people are there at each degree stage and what division are they from. This will have a little bit of 'double counting' due to people having multiple divisions. One of the other troubles is that Q1_5 is a free text column so needs cleaning. The cleaning involves combining the two division columns, and then removing the unneeded entries that were fixed. Then we split the division entries out into their own rows and bring the associated data with them 
 ```{r}
 # first grab the columns needed: respondant, division columns (Q1, and Q1_5), and degree (Q2)
-division_degree <- student_data_mod %>% select(respondant, Q1, Q1_5_TEXT, Q2)
+division_degree <- student_data_mod %>% select(respondant, Q1, Q1_5_recode, Q2)
 
+division_degree <- division_degree %>% 
+  unite(col = division, Q1, Q1_5_recode, sep = ",", remove = FALSE) %>% # cobine the 2 division columns
+  mutate(division = str_remove(division, ",NA")) %>% # remove the NA's
+  mutate(division = str_remove(division, "Other \\(please state\\),")) # remove the "Other (please state)" entries"
+  
+division_degree <- division_degree %>% mutate(division = stringr::str_split(division, pattern = ",")) # takes the comma separated entries and splits them to individual entries as a list
 
+division_degree <- division_degree %>% 
+  tidyr::unnest(division) %>% # takes the list that was generated and duplicates lines so there is one row corresponding to each list entry
+  select(-Q1, -Q1_5_recode) # get rid of the original Q1 columns
+
+division_degree %>% group_by(division, Q2) %>% tally() # create a count for each combination of division and degree that existed
 ```
 
