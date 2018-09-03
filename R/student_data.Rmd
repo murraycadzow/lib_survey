@@ -66,6 +66,12 @@ student_data_mod <- student_data_mod %>%
 ```
 
 
+reorder Q3
+```{r}
+student_data_mod <- student_data_mod %>% mutate(Q3 = forcats::as_factor(Q3) %>% forcats::lvls_reorder(., c(3,2,1), ordered = TRUE))
+```
+
+
 plot degree
 
 ```{r, fig.width = 6}
@@ -94,5 +100,19 @@ division_degree <- division_degree %>%
   select(-Q1, -Q1_5_recode) # get rid of the original Q1 columns
 
 division_degree %>% group_by(division, Q2) %>% tally() # create a count for each combination of division and degree that existed
+```
+
+
+Question 23 parts 1 and 2: how often do you use the library...
+
+We want to modify the data in these columns into what is know as a 'factor', so that R can treat it as a categorical variable and the responses are in the correct order
+```{r}
+q23_recode <- function(q23){
+  # create factor with levels in order from least to most frequent
+  q23 <- forcats::as_factor(q23)
+  q23 <- forcats::lvls_reorder(q23, c(3,2,1,4,5,6), ordered = TRUE)
+  return(q23)
+}
+
 ```
 
